@@ -30,11 +30,37 @@
       } = require("@ale-rainbow/rainbow-notification");
 
       ipcRenderer.once("initialize", (event, notifTemplate) => {
-        // create and render RainbowNotification on DOM
+        // create RainbowNotificationAction objects
+        // map out action handlers to console logs
         const notifOptions = JSON.parse(notifTemplate);
+        if (notifOptions.actions) {
+          notifOptions.actions = notifOptions.actions.map(
+            (action, actionIndex) => {
+              if (action.handler !== null) {
+                action.handler = () =>
+                  console.log(`UI_CLICK`, {
+                    actionIndex,
+                    callbackName: "handler",
+                  });
+              }
+              if (action.choice) {
+                action.choiceHandler = (choiceId) =>
+                  console.log(`UI_CLICK`, {
+                    actionIndex,
+                    callbackName: "choiceHandler",
+                    choiceId,
+                  });
+              }
+              return RainbowNotificationAction.create(action);
+            }
+          );
+        }
+
+        // create and render RainbowNotification on DOM
         const rainbowNotification = RainbowNotification.create(notifOptions);
         const rootEl = document.getElementById("root");
         rootEl.innerHTML = rainbowNotification.getHTMLContent();
+        rainbowNotification.attachActionHandlers(true);
 
         // calculate size on DOM and send it back to resize the window accordingly
         const { width, height } = document
