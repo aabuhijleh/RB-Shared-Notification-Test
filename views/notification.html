@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <link
+      rel="stylesheet"
+      href="../node_modules/@ale-rainbow/rainbow-notification/dist/rainbowNotification.css"
+    />
+    <style>
+      @font-face {
+        font-family: "OpenSans-Regular";
+        src: URL("./OpenSans-Regular.ttf") format("truetype");
+      }
+
+      body {
+        margin: 0;
+        font-family: "OpenSans-Regular";
+        overflow: hidden;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <script type="text/javascript">
+      const { ipcRenderer } = require("electron");
+      const {
+        RainbowNotification,
+        RainbowNotificationAction,
+      } = require("@ale-rainbow/rainbow-notification");
+
+      ipcRenderer.once("initialize", (event, notifTemplate) => {
+        // create and render RainbowNotification on DOM
+        const notifOptions = JSON.parse(notifTemplate);
+        const rainbowNotification = RainbowNotification.create(notifOptions);
+        const rootEl = document.getElementById("root");
+        rootEl.innerHTML = rainbowNotification.getHTMLContent();
+
+        // calculate size on DOM and send it back to resize the window accordingly
+        const { width, height } = document
+          .querySelector(".extCallNotification")
+          .getBoundingClientRect();
+        const calculatedSize = {
+          width: Math.round(width),
+          height: Math.round(height),
+        };
+        ipcRenderer.send("RESIZE", calculatedSize);
+      });
+    </script>
+  </body>
+</html>
