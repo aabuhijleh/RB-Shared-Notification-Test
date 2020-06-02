@@ -11,12 +11,13 @@ window.addEventListener("DOMContentLoaded", () => {
 
   // handle notification window creation logic
   let notificationWindow: Electron.BrowserWindow = null;
-  document.getElementById("generate").addEventListener("click", () => {
+  document.getElementById("generate").addEventListener("click", async () => {
     if (notificationWindow) {
       notificationWindow.close();
       notificationWindow = null;
     }
 
+    // create notification browserWindow
     notificationWindow = new BrowserWindow({
       alwaysOnTop: true,
       frame: false,
@@ -29,18 +30,20 @@ window.addEventListener("DOMContentLoaded", () => {
       },
     });
 
-    notificationWindow.loadURL(
+    // load HTML page which will contain notification UI
+    await notificationWindow.loadURL(
       `file://${__dirname}/../views/notification.html`
     );
 
     notificationWindow.webContents.openDevTools({ mode: "undocked" });
 
-    notificationWindow.once("ready-to-show", () => {
-      notificationWindow.webContents.send("initialize", textAreaEl.value);
-    });
+    // send notification template to the notification window to parse it and render it
+    notificationWindow.webContents.send("initialize", textAreaEl.value);
   });
 
   // resize window according to calculated size on DOM
+  // & position it on the bottom right of display
+  // & show it
   ipcMain.on("RESIZE", (event, calculatedSize: Electron.Size) => {
     if (notificationWindow) {
       const { width, height } = calculatedSize;
